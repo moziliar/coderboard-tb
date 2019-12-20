@@ -1,16 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 func main() {
 	var (
-		port = os.Getenv("PORT")
+		port      = os.Getenv("PORT")
 		publicURL = os.Getenv("PUBLIC_URL")
-		token = os.Getenv("TOKEN")
+		token     = os.Getenv("TOKEN")
 	)
 
 	webhook := &tb.Webhook{
@@ -19,14 +21,16 @@ func main() {
 	}
 
 	pref := tb.Settings{
-		Token:    token,
-		Poller:   webhook,
+		Token:  token,
+		Poller: webhook,
 	}
 
 	b, err := tb.NewBot(pref)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Fail to build", err)
 	}
+
+	b.Start()
 
 	b.Handle("/hello", func(m *tb.Message) {
 		b.Send(m.Sender, "Hi!")
