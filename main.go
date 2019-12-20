@@ -29,9 +29,9 @@ func main() {
 		log.Fatalln("Fail to build", err)
 	}
 
-	b.Start()
-
 	b.Handle("/hello", func(m *tb.Message) {
 		b.Send(m.Sender, "Hi!")
 	})
+
+	b.Start()
 }
