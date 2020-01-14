@@ -1,4 +1,4 @@
-package controllers
+package main
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
