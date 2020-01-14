@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"os"
@@ -54,16 +55,22 @@ func main() {
 	}
 
 	B.Handle(&replyBtn, func(m *tb.Message) {
-		B.Send(m.Sender, "Reply pressed")
+		_, err := B.Send(m.Sender, "Reply pressed")
+		if err != nil {
+			fmt.Println(err)
+		}
 	})
 
 	B.Handle(&inlineBtn, func(c *tb.Callback) {
 		// on inline button pressed (callback!)
 
 		// always respond!
-		B.Respond(c, &tb.CallbackResponse{
+		err := B.Respond(c, &tb.CallbackResponse{
 			Text: "Wow",
 		})
+		if err != nil {
+			fmt.Println(err)
+		}
 	})
 
 	// Command: /start <PAYLOAD>
@@ -72,10 +79,13 @@ func main() {
 			return
 		}
 
-		B.Send(m.Sender, "Hello!", &tb.ReplyMarkup{
+		_, err := B.Send(m.Sender, "Hello!", &tb.ReplyMarkup{
 			ReplyKeyboard:  replyKeys,
 			InlineKeyboard: inlineKeys,
 		})
+		if err != nil {
+			fmt.Println(err)
+		}
 	})
 
 	B.Handle("/hello", Greet)
