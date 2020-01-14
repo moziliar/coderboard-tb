@@ -1,11 +1,12 @@
-package main
+package controllers
 
 import (
+	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"os"
-
-	tb "gopkg.in/tucnak/telebot.v2"
 )
+
+var B *tb.Bot
 
 func main() {
 	var (
@@ -14,27 +15,71 @@ func main() {
 		token     = os.Getenv("TOKEN")
 	)
 
-	webhook := &tb.Webhook{
+	wh := &tb.Webhook{
 		Listen:   ":" + port,
 		Endpoint: &tb.WebhookEndpoint{PublicURL: publicURL},
 	}
 
 	pref := tb.Settings{
 		Token:  token,
-		Poller: webhook,
+		Poller: wh,
 	}
 
-	b, err := tb.NewBot(pref)
+	B, err := tb.NewBot(pref)
 	if err != nil {
 		log.Fatalln("Fail to build", err)
 	}
 
-	b.Handle("/hello", func(m *tb.Message) {
-		_, err := b.Send(m.Sender, "Hi!")
-		if err != nil {
-			log.Println(err)
-		}
+	// This button will be displayed in user's
+	// reply keyboard.
+	replyBtn := tb.ReplyButton{Text: "🌕 Button #1"}
+	replyKeys := [][]tb.ReplyButton{
+		[]tb.ReplyButton{replyBtn},
+		// ...
+	}
+
+	// And this one — just under the message itself.
+	// Pressing it will cause the client to send
+	// the bot a callback.
+	//
+	// Make sure Unique stays unique as it has to be
+	// for callback routing to work.
+	inlineBtn := tb.InlineButton{
+		Unique: "sad_moon",
+		Text:   "🌚 Button #2",
+	}
+	inlineKeys := [][]tb.InlineButton{
+		[]tb.InlineButton{inlineBtn},
+		// ...
+	}
+
+	B.Handle(&replyBtn, func(m *tb.Message) {
+		B.Send(m.Sender, "Reply pressed")
 	})
 
-	b.Start()
+	B.Handle(&inlineBtn, func(c *tb.Callback) {
+		// on inline button pressed (callback!)
+
+		// always respond!
+		B.Respond(c, &tb.CallbackResponse{
+			Text: "Wow",
+		})
+	})
+
+	// Command: /start <PAYLOAD>
+	B.Handle("/start", func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
+		B.Send(m.Sender, "Hello!", &tb.ReplyMarkup{
+			ReplyKeyboard:  replyKeys,
+			InlineKeyboard: inlineKeys,
+		})
+	})
+
+	B.Handle("/hello", Greet)
+	B.Handle("/menu", Menu)
+
+	B.Start()
 }
